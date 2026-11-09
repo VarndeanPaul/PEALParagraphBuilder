@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEAL Paragraph Builder</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      /* PEAL Section Colors */
+      --point-color: #ef4444;
+      --evidence-color: #84cc16;
+      --analysis-color: #3b82f6;
+      --link-color: #eab308;
+      
+      --success-green: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Main Card */
+    .peal-card {
+      background-color: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    /* Completed "Green" State */
+    .peal-card.complete {
+      border-color: var(--success-green);
+      box-shadow: 0 0 35px var(--success-glow);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background-color: #334155;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .peal-card.complete .status-badge {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--success-green);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--text-muted);
+    }
+
+    .peal-card.complete .status-dot {
+      background-color: var(--success-green);
+      box-shadow: 0 0 8px var(--success-green);
+    }
+
+    /* Input Sections */
+    .section-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .peal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label {
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .field-label::before {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .peal-field[data-type="point"] .field-label { color: var(--point-color); }
+    .peal-field[data-type="point"] .field-label::before { background-color: var(--point-color); }
+
+    .peal-field[data-type="evidence"] .field-label { color: var(--evidence-color); }
+    .peal-field[data-type="evidence"] .field-label::before { background-color: var(--evidence-color); }
+
+    .peal-field[data-type="analysis"] .field-label { color: var(--analysis-color); }
+    .peal-field[data-type="analysis"] .field-label::before { background-color: var(--analysis-color); }
+
+    .peal-field[data-type="link"] .field-label { color: var(--link-color); }
+    .peal-field[data-type="link"] .field-label::before { background-color: var(--link-color); }
+
+    .word-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    textarea {
+      width: 100%;
+      background-color: #0f172a;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 70px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    textarea:focus {
+      border-color: #64748b;
+    }
+
+    .peal-field.valid textarea {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    /* Combined Paragraph Preview */
+    .preview-box {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .preview-box h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .output-paragraph {
+      background-color: #0f172a;
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      min-height: 60px;
+      word-wrap: break-word;
+    }
+
+    .output-paragraph span {
+      transition: color 0.2s ease;
+    }
+
+    .output-point { color: #fca5a5; }
+    .output-evidence { color: #bef264; }
+    .output-analysis { color: #93c5fd; }
+    .output-link { color: #fde047; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>PEAL Paragraph Builder</h1>
+      <p>Fill out each block with 1–2 sentences to complete your paragraph.</p>
+    </header>
+
+    <div class="peal-card" id="pealCard">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span id="statusText">In Progress</span>
+      </div>
+
+      <div class="section-group">
+        <!-- Point -->
+        <div class="peal-field" data-type="point">
+          <div class="field-header">
+            <label class="field-label" for="pointInput">Point</label>
+            <span class="word-count" id="pointCount">0 / 5 words min</span>
+          </div>
+          <textarea id="pointInput" placeholder="Make a clear single statement or assertion..."></textarea>
+        </div>
+
+        <!-- Evidence -->
+        <div class="peal-field" data-type="evidence">
+          <div class="field-header">
+            <label class="field-label" for="evidenceInput">Evidence</label>
+            <span class="word-count" id="evidenceCount">0 / 5 words min</span>
+          </div>
+          <textarea id="evidenceInput" placeholder="Provide facts, examples, or quotes to back up your point..."></textarea>
+        </div>
+
+        <!-- Analysis -->
+        <div class="peal-field" data-type="analysis">
+          <div class="field-header">
+            <label class="field-label" for="analysisInput">Analysis</label>
+            <span class="word-count" id="analysisCount">0 / 8 words min</span>
+          </div>
+          <textarea id="analysisInput" placeholder="Explain what this evidence means and why it matters..."></textarea>
+        </div>
+
+        <!-- Link -->
+        <div class="peal-field" data-type="link">
+          <div class="field-header">
+            <label class="field-label" for="linkInput">Link</label>
+            <span class="word-count" id="linkCount">0 / 5 words min</span>
+          </div>
+          <textarea id="linkInput" placeholder="Connect this paragraph back to your essay title or main topic..."></textarea>
+        </div>
+      </div>
+
+      <!-- Live Paragraph Output -->
+      <div class="preview-box">
+        <h3>Full Paragraph Preview</h3>
+        <div class="output-paragraph" id="outputParagraph">
+          <span class="output-point" id="outPoint"></span>
+          <span class="output-evidence" id="outEvidence"></span>
+          <span class="output-analysis" id="outAnalysis"></span>
+          <span class="output-link" id="outLink"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fields = [
+      { id: 'point', minWords: 5 },
+      { id: 'evidence', minWords: 5 },
+      { id: 'analysis', minWords: 8 },
+      { id: 'link', minWords: 5 }
+    ];
+
+    const pealCard = document.getElementById('pealCard');
+    const statusText = document.getElementById('statusText');
+
+    function countWords(text) {
+      return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+    }
+
+    function updateState() {
+      let allValid = true;
+
+      fields.forEach(field => {
+        const input = document.getElementById(`${field.id}Input`);
+        const countSpan = document.getElementById(`${field.id}Count`);
+        const outSpan = document.getElementById(`out${field.id.charAt(0).toUpperCase() + field.id.slice(1)}`);
+        const fieldContainer = input.closest('.peal-field');
+
+        const text = input.value;
+        const words = countWords(text);
+
+        // Update word count UI
+        countSpan.textContent = `${words} / ${field.minWords} words min`;
+
+        // Check if section meets minimum requirement (ensuring at least a full sentence/couple of words)
+        if (words >= field.minWords) {
+          fieldContainer.classList.add('valid');
+        } else {
+          fieldContainer.classList.remove('valid');
+          allValid = false;
+        }
+
+        // Live preview updates (adds spacing automatically)
+        outSpan.textContent = text ? text.trim() + ' ' : '';
+      });
+
+      // Update Card Green State
+      if (allValid) {
+        pealCard.classList.add('complete');
+        statusText.textContent = 'Paragraph Ready!';
+      } else {
+        pealCard.classList.remove('complete');
+        statusText.textContent = 'In Progress';
+      }
+    }
+
+    // Attach listeners
+    fields.forEach(field => {
+      const input = document.getElementById(`${field.id}Input`);
+      input.addEventListener('input', updateState);
+    });
+  </script>
+</body>
+</html>
